@@ -1,0 +1,18 @@
+{
+  "replace": false,
+  "values": [
+    "#minecraft:stairs",
+    "#minecraft:wooden_stairs",
+    "#minecraft:wooden_slabs",
+    "#minecraft:slabs",
+    "#minecraft:walls",
+    "#minecraft:fences",
+    "#minecraft:wooden_fences",
+    "#c:fences",
+    "#c:fences/wooden",
+    "#c:fences/nether_brick",
+    { "id": "doubleslabs:vertical_slab", "required": false },
+    { "id": "#enchanted-vertical-slabs:slabs", "required": false },
+    { "id": "#quark:vertical_slab", "required": false }
+  ]
+}

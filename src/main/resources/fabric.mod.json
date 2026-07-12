@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "id": "windowlogging",
+  "version": "${version}",
+  "name": "Windowlogging",
+  "description": "Windowlogging, ported to Fabric from a port of an old Create mechanic",
+  "authors": ["Arcadesmasher", "Simibubi", "Grimmauld"],
+  "contact": {
+    "homepage": "https://modrinth.com/mod/windowlogging-fabric",
+    "sources": "https://github.com/arcade-smasher/windowlogging-fabric"
+  },
+  "license": "MIT",
+  "environment": "*",
+  "entrypoints": {
+    "main": [
+      "mod.grimmauld.windowlogging.Windowlogging"
+    ],
+    "client": [
+      "mod.grimmauld.windowlogging.WindowloggingClient"
+    ]
+  },
+  "mixins": [
+    "windowlogging.mixins.json"
+  ],
+  "depends": {
+    "fabricloader": ">=0.16.9",
+    "minecraft": ">=1.21.9 <=1.21.11",
+    "java": ">=21",
+    "fabric-api": "*"
+  },
+  "accessWidener": "windowlogging.accesswidener"
+}

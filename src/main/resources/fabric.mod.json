@@ -10,6 +10,7 @@
     "sources": "https://github.com/arcade-smasher/windowlogging-fabric"
   },
   "license": "MIT",
+  "icon": "assets/windowlogging/icon.png",
   "environment": "*",
   "entrypoints": {
     "main": [

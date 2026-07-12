@@ -278,8 +278,9 @@ public class WindowInABlockBlock extends IronBarsBlock implements EntityBlock {
 		WindowInABlockTileEntity wte = getTileEntity(level, currentPos);
 		if (wte == null)
 			return stateIn;
+		BlockState windowNeighborState = resolveWindowNeighborState(level, facingPos, facingState);
 		wte.setWindowBlock(
-			wte.getWindowBlock().updateShape(level, tickAccess, currentPos, facing, facingPos, facingState, random));
+			wte.getWindowBlock().updateShape(level, tickAccess, currentPos, facing, facingPos, windowNeighborState, random));
 		BlockState blockState =
 			wte.getPartialBlock().updateShape(level, tickAccess, currentPos, facing, facingPos, facingState, random);
 		if (blockState.getBlock() instanceof CrossCollisionBlock) {
@@ -291,6 +292,15 @@ public class WindowInABlockBlock extends IronBarsBlock implements EntityBlock {
 		wte.requestModelDataUpdate();
 
 		return stateIn;
+	}
+
+	static BlockState resolveWindowNeighborState(BlockGetter level, BlockPos neighborPos, BlockState rawNeighborState) {
+		if (rawNeighborState.getBlock() instanceof WindowInABlockBlock) {
+			BlockEntity neighborBe = level.getBlockEntity(neighborPos);
+			if (neighborBe instanceof WindowInABlockTileEntity neighborTe)
+				return neighborTe.getWindowBlock();
+		}
+		return rawNeighborState;
 	}
 
 	public BlockState getSurroundingBlockState(BlockGetter reader, BlockPos pos) {

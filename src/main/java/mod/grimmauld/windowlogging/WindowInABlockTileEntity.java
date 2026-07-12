@@ -54,8 +54,6 @@ public class WindowInABlockTileEntity extends BlockEntity implements RenderDataB
 		super.saveAdditional(output);
 		output.store("PartialBlock", BlockState.CODEC, getPartialBlock());
 		output.store("WindowBlock", BlockState.CODEC, getWindowBlock());
-		// See NbtBridge - storing a raw nested CompoundTag under a ValueOutput has the same
-		// "no direct passthrough" problem as the read side above.
 		output.store("PartialData", net.minecraft.nbt.CompoundTag.CODEC, partialBlockTileData);
 	}
 
@@ -64,8 +62,10 @@ public class WindowInABlockTileEntity extends BlockEntity implements RenderDataB
 			return;
 		for (Direction side : Direction.values()) {
 			BlockPos offsetPos = worldPosition.relative(side);
+			BlockState windowNeighborState =
+					WindowInABlockBlock.resolveWindowNeighborState(level, offsetPos, level.getBlockState(offsetPos));
 			windowBlock = getWindowBlock().updateShape(level, level, worldPosition, side, offsetPos,
-				level.getBlockState(offsetPos), level.getRandom());
+					windowNeighborState, level.getRandom());
 		}
 		level.sendBlockUpdated(getBlockPos(), getBlockState(), getBlockState(), 2 | 16);
 		setChanged();
@@ -84,9 +84,7 @@ public class WindowInABlockTileEntity extends BlockEntity implements RenderDataB
 	 * existing call sites (which mirror the upstream Forge code closely) don't need touching.
 	 * {@code setChanged()} still needs to be called separately wherever persisted state changes.
 	 */
-	public void requestModelDataUpdate() {
-		// Intentionally empty - see javadoc above.
-	}
+	public void requestModelDataUpdate() {}
 
 	public BlockState getPartialBlock() {
 		return partialBlock;

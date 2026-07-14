@@ -278,9 +278,9 @@ public class WindowInABlockBlock extends IronBarsBlock implements EntityBlock {
 		WindowInABlockTileEntity wte = getTileEntity(level, currentPos);
 		if (wte == null)
 			return stateIn;
-		BlockState windowNeighborState = resolveWindowNeighborState(level, facingPos, facingState);
+//		BlockState windowNeighborState = resolveWindowNeighborState(level, facingPos, facingState);
 		wte.setWindowBlock(
-			wte.getWindowBlock().updateShape(level, tickAccess, currentPos, facing, facingPos, windowNeighborState, random));
+			wte.getWindowBlock().updateShape(level, tickAccess, currentPos, facing, facingPos, facingState, random));
 		BlockState blockState =
 			wte.getPartialBlock().updateShape(level, tickAccess, currentPos, facing, facingPos, facingState, random);
 		if (blockState.getBlock() instanceof CrossCollisionBlock) {

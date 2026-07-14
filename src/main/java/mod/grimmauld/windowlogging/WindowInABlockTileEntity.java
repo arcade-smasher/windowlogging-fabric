@@ -62,10 +62,10 @@ public class WindowInABlockTileEntity extends BlockEntity implements RenderDataB
 			return;
 		for (Direction side : Direction.values()) {
 			BlockPos offsetPos = worldPosition.relative(side);
-			BlockState windowNeighborState =
-					WindowInABlockBlock.resolveWindowNeighborState(level, offsetPos, level.getBlockState(offsetPos));
+//			BlockState windowNeighborState =
+//					WindowInABlockBlock.resolveWindowNeighborState(level, offsetPos, level.getBlockState(offsetPos));
 			windowBlock = getWindowBlock().updateShape(level, level, worldPosition, side, offsetPos,
-					windowNeighborState, level.getRandom());
+					level.getBlockState(offsetPos), level.getRandom());
 		}
 		level.sendBlockUpdated(getBlockPos(), getBlockState(), getBlockState(), 2 | 16);
 		setChanged();

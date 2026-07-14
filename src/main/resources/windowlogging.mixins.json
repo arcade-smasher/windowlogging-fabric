@@ -2,23 +2,12 @@
   "required": false,
   "package": "mod.grimmauld.windowlogging.mixin",
   "compatibilityLevel": "JAVA_21",
-  "mixins": [
-    "BlockStateBaseMixin",
-    "PlayerMixin",
-    "ServerGamePacketListenerImplMixin",
-    "ServerPlayerGameModeMixin",
-    "ToolMixin"
-  ],
+  "mixins": [],
   "injectors": {
     "defaultRequire": 1
   },
   "overwrites": {
     "requireAnnotations": true
   },
-  "client": [
-    "ClientLevelMixin",
-    "JadeHarvestToolProviderAccessor",
-    "LevelRendererMixin",
-    "MultiPlayerGameModeMixin"
-  ]
+  "client": []
 }

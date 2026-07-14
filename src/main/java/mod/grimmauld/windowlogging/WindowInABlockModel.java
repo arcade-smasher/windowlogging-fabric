@@ -59,7 +59,7 @@ public class WindowInABlockModel implements BlockStateModel {
 		WindowInABlockTileEntity wte = renderDataOf(blockView, pos);
 		if (wte == null)
 			return wrapped.particleIcon();
-		return DISPATCHER.getBlockModel(wte.hoveredBlock).particleIcon();
+		return DISPATCHER.getBlockModel(wte.getPartialBlock()).particleIcon();
 	}
 
 	@Override

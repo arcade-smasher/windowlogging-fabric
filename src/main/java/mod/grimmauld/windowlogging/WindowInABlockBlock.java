@@ -19,6 +19,8 @@ import net.minecraft.world.level.block.*;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.BooleanProperty;
+import net.minecraft.world.level.block.state.properties.NoteBlockInstrument;
+import net.minecraft.world.level.material.MapColor;
 import net.minecraft.world.level.storage.loot.LootParams;
 import net.minecraft.world.level.storage.loot.parameters.LootContextParams;
 import net.minecraft.world.phys.AABB;
@@ -37,48 +39,7 @@ import java.util.List;
 public class WindowInABlockBlock extends IronBarsBlock implements EntityBlock {
 
 	public WindowInABlockBlock(ResourceKey<Block> key) {
-		super(Properties.ofFullCopy(Blocks.STONE).noOcclusion().setId(key));
-	}
-
-	@Environment(EnvType.CLIENT)
-	public static BlockPos breakingBlock = new BlockPos(0,0,0);
-	@Environment(EnvType.CLIENT)
-	public static Integer breakingSide = -1;
-
-	public BlockState destroyedState;
-
-	public void cleanupDestroyedState() {
-		destroyedState = null;
-	}
-
-	@Override
-	public void playerDestroy(@NonNull Level level, @NonNull Player player, @NonNull BlockPos blockPos, @NonNull BlockState blockState, @Nullable BlockEntity blockEntity, @NonNull ItemStack itemStack) {
-		if (destroyedState == null) return;
-		destroyedState.getBlock().playerDestroy(level, player, blockPos, destroyedState, level.getBlockEntity(blockPos), itemStack);
-		destroyedState = null;
-	}
-
-	public void destroy(BlockPos blockPos, BlockState blockState2, BlockEntity blockEntity, Level level, Player player) {
-
-		if (!(blockState2.getBlock() instanceof WindowInABlockBlock)) return;
-		if (!(blockEntity instanceof WindowInABlockTileEntity wte)) return;
-
-		destroyedState = getLookedAtEmbeddedBlock(level, player, blockPos, wte);
-
-		BlockState windowState = wte.getWindowBlock();
-		BlockState partialState = wte.getPartialBlock();
-
-		if (destroyedState == null) return;
-
-		BlockState restoreState;
-
-		if (destroyedState.equals(windowState)) {
-			restoreState = partialState;
-		} else {
-			restoreState = windowState;
-		}
-
-		level.setBlock(blockPos, restoreState, Block.UPDATE_ALL);
+		super(Properties.of().noOcclusion().setId(key).strength(2.0F, 3.0F));
 	}
 
 	public static boolean hitContains(BlockState subState, BlockGetter level, BlockPos pos, Vec3 relativeHit) {
@@ -94,57 +55,9 @@ public class WindowInABlockBlock extends IronBarsBlock implements EntityBlock {
 	}
 
 	@Override
-	public float getDestroyProgress(@NonNull BlockState blockState, @NonNull Player player, @NonNull BlockGetter blockGetter, @NonNull BlockPos blockPos) {
-		WindowInABlockTileEntity wte = getTileEntity(blockGetter, blockPos);
-		BlockState lookedAtBlock = getLookedAtEmbeddedBlock((Level) blockGetter, player, blockPos, wte);
-		if (player.level().isClientSide()) {
-			// if we start breaking a different side of the same block, reset breaking progress
-			if (breakingBlock == blockPos && breakingSide != (lookedAtBlock == wte.getWindowBlock() ? 1 : 0)) {
-				Minecraft mc = Minecraft.getInstance();
-				if (mc.gameMode == null) {
-					System.err.println("gameMode is null");
-				} else {
-					mc.schedule(() -> {
-						mc.gameMode.connection.send(new ServerboundPlayerActionPacket(ServerboundPlayerActionPacket.Action.ABORT_DESTROY_BLOCK, blockPos, Direction.DOWN));
-						BlockHitResult blockHitResult = (BlockHitResult) mc.hitResult;
-						mc.gameMode.connection.send(new ServerboundPlayerActionPacket(ServerboundPlayerActionPacket.Action.START_DESTROY_BLOCK, blockPos, blockHitResult.getDirection()));
-						mc.gameMode.destroyProgress = 0.0F;
-						mc.gameMode.destroyTicks = 0.0F;
-					});
-				}
-				return 0.0F;
-			}
-			breakingBlock = blockPos;
-			breakingSide = lookedAtBlock == wte.getWindowBlock() ? 1 : 0;
-		}
-		if (lookedAtBlock == null) {
-			return super.getDestroyProgress(blockState, player, blockGetter, blockPos);
-		}
-		return lookedAtBlock.getDestroyProgress(player, blockGetter, blockPos);
-	}
-
-	public ItemStack getCloneItemStackWithPlayer(@NonNull Player player, @NonNull LevelReader level, @NonNull BlockPos blockPos, boolean includeData) {
-		BlockState lookedAtBlock = getLookedAtEmbeddedBlock(player.level(), player, blockPos, getTileEntity(level, blockPos));
-		if (lookedAtBlock == null) {
-			BlockState surroundingState = getSurroundingBlockState(level, blockPos);
-			return surroundingState.getBlock().getCloneItemStack(level, blockPos, surroundingState, includeData);
-		}
-		return lookedAtBlock.getCloneItemStack(level, blockPos, includeData);
-	}
-
-	@Override
 	public ItemStack getCloneItemStack(@NonNull LevelReader level, @NonNull BlockPos blockPos, @NonNull BlockState state, boolean includeData) {
-		if (level.isClientSide()) {
-			Minecraft mc = Minecraft.getInstance();
-			if (mc.player == null || mc.level == null) {
-				BlockState surroundingState = getSurroundingBlockState(level, blockPos);
-				return surroundingState.getBlock().getCloneItemStack(level, blockPos, surroundingState, includeData);
-			}
-			return getCloneItemStackWithPlayer(mc.player, level, blockPos, includeData);
-		} else {
-			BlockState surroundingState = getSurroundingBlockState(level, blockPos);
-			return surroundingState.getBlock().getCloneItemStack(level, blockPos, surroundingState, includeData);
-		}
+		BlockState surroundingState = getSurroundingBlockState(level, blockPos);
+		return surroundingState.getBlock().getCloneItemStack(level, blockPos, surroundingState, includeData);
 	}
 
 	public List<ItemStack> dropHelper(@NonNull BlockState block, LootParams.@NonNull Builder builder) {
@@ -162,14 +75,8 @@ public class WindowInABlockBlock extends IronBarsBlock implements EntityBlock {
 		Entity entity = builder.getOptionalParameter(LootContextParams.THIS_ENTITY);
 		BlockEntity blockEntity = builder.getOptionalParameter(LootContextParams.BLOCK_ENTITY);
 		if (blockEntity instanceof WindowInABlockTileEntity wte) {
-			if (entity instanceof Player player) {
-				BlockState embeddedBlock = getLookedAtEmbeddedBlock(builder.getLevel(), player, wte.getBlockPos(), wte);
-				if (embeddedBlock != null) {
-					return dropHelper(embeddedBlock, builder);
-				}
-			}
-			List<ItemStack> combinedDrops = dropHelper(state, builder);
-			combinedDrops.addAll(dropHelper(state, builder));
+			List<ItemStack> combinedDrops = dropHelper(wte.getWindowBlock(), builder);
+			combinedDrops.addAll(dropHelper(wte.getPartialBlock(), builder));
 			return combinedDrops;
 		}
 		System.err.println("Cannot get drops for state " + state);
@@ -198,77 +105,6 @@ public class WindowInABlockBlock extends IronBarsBlock implements EntityBlock {
 	public VoxelShape getCollisionShape(@NonNull BlockState state, @NonNull BlockGetter worldIn, @NonNull BlockPos pos,
 	                                    @NonNull CollisionContext context) {
 		return getCombinedShape(state, worldIn, pos, context);
-	}
-
-	@Nullable
-	private BlockState getLookedAtEmbeddedBlock(Level level, Player player, BlockPos pos,
-	                                            WindowInABlockTileEntity wte) {
-
-		double reach = player.getAttributeValue(Attributes.BLOCK_INTERACTION_RANGE);
-
-		Vec3 start = player.getEyePosition();
-		Vec3 end = start.add(player.getViewVector(1.0F).scale(reach));
-
-		BlockHitResult hit = level.clip(new ClipContext(
-				start,
-				end,
-				ClipContext.Block.OUTLINE,
-				ClipContext.Fluid.NONE,
-				player
-		));
-
-		if (!hit.getBlockPos().equals(pos))
-			return null;
-
-		Vec3 relative = hit.getLocation()
-				.subtract(Vec3.atLowerCornerOf(pos));
-
-		if (hitContains(wte.getWindowBlock(), level, pos, relative))
-			return wte.getWindowBlock();
-
-		if (hitContains(wte.getPartialBlock(), level, pos, relative))
-			return wte.getPartialBlock();
-
-		return null;
-	}
-
-	@Environment(EnvType.CLIENT)
-	public VoxelShape getRaycastedShape(BlockGetter blockGetter, BlockPos blockPos) {
-
-		WindowInABlockTileEntity wte = getTileEntity(blockGetter, blockPos);
-
-		return getRaycastedShape(blockGetter, blockPos, wte);
-	}
-
-	@Environment(EnvType.CLIENT)
-	public VoxelShape getRaycastedShape(BlockGetter blockGetter, BlockPos blockPos, WindowInABlockTileEntity wte) {
-
-		if (wte == null)
-			return Shapes.empty();
-
-		Minecraft minecraft = Minecraft.getInstance();
-
-		if (minecraft.hitResult instanceof BlockHitResult hit
-				&& hit.getBlockPos().equals(blockPos)) {
-
-			Vec3 relative = hit.getLocation()
-					.subtract(Vec3.atLowerCornerOf(blockPos));
-
-			if (hitContains(wte.getWindowBlock(), blockGetter, blockPos, relative)) {
-				wte.hoveredBlock = wte.getWindowBlock();
-				return wte.getWindowBlock().getShape(blockGetter, blockPos);
-			}
-
-			if (hitContains(wte.getPartialBlock(), blockGetter, blockPos, relative)) {
-				wte.hoveredBlock = wte.getPartialBlock();
-				return wte.getPartialBlock().getShape(blockGetter, blockPos);
-			}
-		}
-
-		return Shapes.or(
-				wte.getWindowBlock().getShape(blockGetter, blockPos),
-				wte.getPartialBlock().getShape(blockGetter, blockPos)
-		);
 	}
 
 	@Override
@@ -325,7 +161,7 @@ public class WindowInABlockBlock extends IronBarsBlock implements EntityBlock {
 				if (mc.level != null && mc.hitResult != null) {
 					WindowInABlockTileEntity wte = wbb.getTileEntity(mc.level, ((BlockHitResult) mc.hitResult).getBlockPos());
 					if (wte != null) {
-						return wte.hoveredBlock.getSoundType();
+						return wte.getPartialBlock().getSoundType();
 					}
 				}
 			}

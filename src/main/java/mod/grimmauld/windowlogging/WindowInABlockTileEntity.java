@@ -24,8 +24,6 @@ public class WindowInABlockTileEntity extends BlockEntity implements RenderDataB
 	private BlockState windowBlock = Blocks.AIR.defaultBlockState();
 	private CompoundTag partialBlockTileData = new CompoundTag();
 	private BlockEntity partialBlockTileEntity = null;
-	@Environment(EnvType.CLIENT)
-	public BlockState hoveredBlock = Blocks.AIR.defaultBlockState();
 
 	public WindowInABlockTileEntity(BlockPos pos, BlockState blockState) {
 		super(Windowlogging.WINDOW_IN_A_BLOCK_TILE_ENTITY, pos, blockState);
